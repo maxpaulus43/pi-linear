@@ -23,7 +23,7 @@
     },
     "devDependencies": {
         "@earendil-works/pi-tui": "^0.80.6",
-        "@maxpaulus/changelogger": "file:../changelogger",
+        "@maxpaulus/changelogger": "^0.4.0",
         "@types/node": "^24.0.0",
         "tsx": "^4.20.0",
         "typescript": "^5.8.0"
