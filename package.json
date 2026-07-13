@@ -30,8 +30,7 @@
     },
     "scripts": {
         "test": "tsx --test test/**/*.test.ts",
-        "typecheck": "tsc --noEmit",
-        "prepare": "changelogger install"
+        "typecheck": "tsc --noEmit"
     },
     "repository": {
         "type": "git",

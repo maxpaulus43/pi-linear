@@ -58,3 +58,9 @@ npm install
 npm run typecheck
 npm test
 ```
+
+To enable changelogger functionality, run:
+
+```sh
+npx changelogger install
+```
