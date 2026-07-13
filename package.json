@@ -23,6 +23,7 @@
     },
     "devDependencies": {
         "@earendil-works/pi-tui": "^0.80.6",
+        "@maxpaulus/changelogger": "file:../changelogger",
         "@types/node": "^24.0.0",
         "tsx": "^4.20.0",
         "typescript": "^5.8.0"
@@ -30,7 +31,7 @@
     "scripts": {
         "test": "tsx --test test/**/*.test.ts",
         "typecheck": "tsc --noEmit",
-        "prepare": "node scripts/install-hook.mjs"
+        "prepare": "changelogger install"
     },
     "repository": {
         "type": "git",
