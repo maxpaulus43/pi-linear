@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.1 - 2026-07-13
+- Replace custom changelog generation script with `@maxpaulus/changelogger` dependency
+- Update the prepare script to invoke `changelogger install` instead of the local hook installer
 ## 0.3.0 - 2026-07-13
 - Include up to 50 attachment links and metadata in `linear_get_issue` output
 - Add filtering options (assignee, team, state, project, label, priority) to `linear_search_issues`
