@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { authorizationUrl, createCodeChallenge, isLocalRedirectUri } from "../extensions/oauth.ts";
 import { parseIssueReference } from "../extensions/issue-reference.ts";
+import { issueFilter } from "../extensions/issue-filter.ts";
 
 test("only accepts local HTTP OAuth redirect URIs", () => {
   assert.equal(isLocalRedirectUri("http://localhost:3000/oauth/callback"), true);
@@ -27,6 +28,25 @@ test("parses Linear issue identifiers and URLs", () => {
     },
   );
   assert.throws(() => parseIssueReference("api error codex"), /Invalid Linear issue reference/);
+});
+
+test("builds supported issue filters", () => {
+  assert.deepEqual(issueFilter({
+    assigneeEmail: "ada@example.com",
+    team: "ENG",
+    state: "In Progress",
+    project: "Apollo",
+    label: "Bug",
+    priority: 2,
+  }), {
+    assignee: { email: { eq: "ada@example.com" } },
+    team: { key: { eq: "ENG" } },
+    state: { name: { eq: "In Progress" } },
+    project: { name: { eq: "Apollo" } },
+    labels: { some: { name: { eq: "Bug" } } },
+    priority: { eq: 2 },
+  });
+  assert.deepEqual(issueFilter({}), {});
 });
 
 test("creates a PKCE authorization URL", () => {

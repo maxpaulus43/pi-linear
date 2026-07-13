@@ -3,10 +3,10 @@
 A [Pi](https://github.com/badlogic/pi-mono) package that connects Pi to Linear through OAuth and exposes tools for:
 
 - reading an issue (`linear_get_issue`)
-- searching issues (`linear_search_issues`)
+- searching issues by text, assignee email, team, state, project, label, or priority (`linear_search_issues`)
 - posting a comment (`linear_comment_issue`)
 
-Tool output is compact by default in Pi’s TUI; expand a tool row to inspect its full JSON result.
+`linear_get_issue` includes up to 50 attachment links and their metadata. Tool output is compact by default in Pi’s TUI; expand a tool row to inspect its full JSON result.
 
 ## Install
 

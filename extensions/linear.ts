@@ -22,6 +22,7 @@ import { createServer } from "node:http";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { spawn } from "node:child_process";
+import { issueFilter } from "./issue-filter.js";
 import { parseIssueReference } from "./issue-reference.js";
 
 const TOKEN_URL = "https://api.linear.app/oauth/token";
@@ -275,11 +276,12 @@ function toolResult(value: unknown) {
     };
 }
 
-async function issueSummary(issue: any) {
-    const [team, state, assignee] = await Promise.all([
+async function issueSummary(issue: any, includeAttachments = false) {
+    const [team, state, assignee, attachments] = await Promise.all([
         issue.team,
         issue.state,
         issue.assignee,
+        includeAttachments ? issue.attachments({ first: 50 }) : null,
     ]);
     return {
         id: issue.id,
@@ -299,6 +301,16 @@ async function issueSummary(issue: any) {
         assignee: assignee
             ? { id: assignee.id, name: assignee.name, email: assignee.email }
             : null,
+        attachments: (attachments?.nodes ?? []).map((attachment: any) => ({
+            id: attachment.id,
+            title: attachment.title,
+            subtitle: attachment.subtitle,
+            url: attachment.url,
+            sourceType: attachment.sourceType,
+            metadata: attachment.metadata,
+            createdAt: attachment.createdAt,
+            updatedAt: attachment.updatedAt,
+        })),
     };
 }
 
@@ -356,7 +368,7 @@ export default function (pi: ExtensionAPI) {
             const issue = await findIssue(linear, identifier);
             if (!issue)
                 throw new Error(`Linear issue not found: ${identifier}`);
-            return toolResult(await issueSummary(issue));
+            return toolResult(await issueSummary(issue, true));
         },
         renderResult(result, options, theme) {
             const issue = result.details as
@@ -379,18 +391,63 @@ export default function (pi: ExtensionAPI) {
         name: "linear_search_issues",
         label: "Linear Search Issues",
         description:
-            "Search Linear issues by text. Returns at most 50 matching issues. Requires /linear-login.",
-        promptSnippet: "Search Linear issues by text",
+            "Search Linear issues by text and optional filters. Returns at most 50 matching issues. Requires /linear-login.",
+        promptSnippet: "Search Linear issues by text or filters",
         parameters: Type.Object({
-            query: Type.String({ description: "Text to search for" }),
+            query: Type.Optional(
+                Type.String({ description: "Text to search for" }),
+            ),
+            assigneeEmail: Type.Optional(
+                Type.String({ description: "Assignee email address" }),
+            ),
+            team: Type.Optional(
+                Type.String({ description: "Team key, such as ENG" }),
+            ),
+            state: Type.Optional(
+                Type.String({ description: "Workflow state name, such as In Progress" }),
+            ),
+            project: Type.Optional(
+                Type.String({ description: "Project name" }),
+            ),
+            label: Type.Optional(
+                Type.String({ description: "Issue label name" }),
+            ),
+            priority: Type.Optional(
+                Type.Integer({
+                    minimum: 0,
+                    maximum: 4,
+                    description: "0=None, 1=Urgent, 2=High, 3=Medium, 4=Low",
+                }),
+            ),
             limit: Type.Optional(
                 Type.Integer({ minimum: 1, maximum: 50, default: 20 }),
             ),
         }),
-        async execute(_id, { query, limit = 20 }) {
-            const results: any = await (
-                await authenticatedClient()
-            ).searchIssues(query, { first: limit });
+        async execute(
+            _id,
+            {
+                query,
+                assigneeEmail,
+                team,
+                state,
+                project,
+                label,
+                priority,
+                limit = 20,
+            },
+        ) {
+            const linear = await authenticatedClient();
+            const filter = issueFilter({
+                assigneeEmail,
+                team,
+                state,
+                project,
+                label,
+                priority,
+            });
+            const results: any = query
+                ? await linear.searchIssues(query, { first: limit, filter })
+                : await linear.issues({ first: limit, filter });
             return toolResult({
                 nodes: await Promise.all(
                     (results.nodes ?? []).map(issueSummary),

@@ -1,6 +1,6 @@
 {
     "name": "@maxpaulus/pi-linear",
-    "version": "0.2.1",
+    "version": "0.3.0",
     "description": "Linear OAuth and issue tools for Pi",
     "keywords": [
         "pi-package",
